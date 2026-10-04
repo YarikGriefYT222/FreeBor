@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Кэшбэк & Скидки</title>
+<!-- Telegram Web App SDK -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<!-- Векторные иконки Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+--bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+--card-bg: rgba(255, 255, 255, 0.05);
+--card-border: rgba(255, 255, 255, 0.1);
+--text-color: #f8fafc;
+--hint-color: #94a3b8;
+--accent-color: #6366f1;
+--accent-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+--admin-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+--danger-gradient: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+--success-color: #10b981;
+}
+* {
+box-sizing: border-box;
+-webkit-tap-highlight-color: transparent;
+}
+body {
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+background: var(--bg-gradient);
+color: var(--text-color);
+padding: 16px;
+padding-bottom: 80px; /* Отступ под нижнее меню */
+margin: 0;
+min-height: 100vh;
+}
+.header {
+text-align: center;
+margin-bottom: 20px;
+}
+.header h2 {
+margin: 0;
+font-size: 22px;
+font-weight: 700;
+letter-spacing: -0.5px;
+}
+.tab-content {
+display: none;
+}
+.tab-content.active {
+display: block;
+}
+.card {
+background: var(--card-bg);
+backdrop-filter: blur(12px);
+-webkit-backdrop-filter: blur(12px);
+border: 1px solid var(--card-border);
+border-radius: 20px;
+padding: 18px;
+margin-bottom: 16px;
+box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+}
+.card-header {
+display: flex;
+align-items: center;
+gap: 10px;
+margin-bottom: 8px;
+}
+.card-icon {
+width: 36px;
+height: 36px;
+border-radius: 10px;
+background: rgba(255, 255, 255, 0.08);
+display: flex;
+align-items: center;
+justify-content: center;
+color: #818cf8;
+font-size: 16px;
+}
+.card-title {
+font-size: 13px;
+color: var(--hint-color);
+text-transform: uppercase;
+font-weight: 600;
+letter-spacing: 0.5px;
+}
+.card-value {
+font-size: 26px;
+font-weight: 800;
+margin: 4px 0 0 0;
+word-break: break-all;
+}
+.description {
+font-size: 13px;
+color: var(--hint-color);
+margin-top: 10px;
+line-height: 1.4;
+}
+.btn {
+width: 100%;
+background: var(--accent-gradient);
+color: #ffffff;
+border: none;
+padding: 14px;
+border-radius: 14px;
+font-size: 15px;
+font-weight: 600;
+cursor: pointer;
+margin-top: 12px;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 8px;
+box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+transition: transform 0.1s ease, opacity 0.2s ease;
+}
+.btn:active {
+transform: scale(0.98);
+opacity: 0.9;
+}
+.btn-group {
+display: flex;
+gap: 10px;
+}
+.btn-admin {
+background: var(--admin-gradient);
+box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+.btn-minus {
+background: var(--danger-gradient);
+box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
+}
+input {
+width: 100%;
+padding: 12px 14px;
+margin-top: 6px;
+margin-bottom: 12px;
+border-radius: 12px;
+border: 1px solid var(--card-border);
+background: rgba(0, 0, 0, 0.3);
+color: var(--text-color);
+font-size: 15px;
+outline: none;
+transition: border-color 0.2s;
+}
+input:focus {
+border-color: #818cf8;
+}
+.admin-panel {
+display: none;
+border: 1px solid rgba(239, 68, 68, 0.3);
+background: rgba(239, 68, 68, 0.05);
+}
+.admin-icon {
+color: #f87171;
+background: rgba(239, 68, 68, 0.15);
+}
+.status-msg {
+font-size: 13px;
+margin-top: 10px;
+text-align: center;
+font-weight: 500;
+}
+/* Инфо списки */
+.info-list {
+list-style: none;
+padding: 0;
+margin: 10px 0 0 0;
+}
+.info-list li {
+display: flex;
+align-items: flex-start;
+gap: 10px;
+font-size: 14px;
+line-height: 1.5;
+margin-bottom: 12px;
+color: var(--text-color);
+}
+.info-list i {
+color: #818cf8;
+margin-top: 3px;
+}
+/* Нижняя навигация */
+.bottom-nav {
+position: fixed;
+bottom: 0;
+left: 0;
+right: 0;
+height: 65px;
+background: rgba(15, 23, 42, 0.85);
+backdrop-filter: blur(16px);
+-webkit-backdrop-filter: blur(16px);
+border-top: 1px solid var(--card-border);
+display: flex;
+justify-content: space-around;
+align-items: center;
+z-index: 100;
+}
+.nav-item {
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 4px;
+color: var(--hint-color);
+font-size: 11px;
+font-weight: 500;
+cursor: pointer;
+width: 50%;
+text-align: center;
+transition: color 0.2s;
+}
+.nav-item i {
+font-size: 18px;
+}
+.nav-item.active {
+color: #818cf8;
+}
+</style>
+</head>
+<body>
+<div class="header">
+<h2>Студийный Кэшбэк</h2>
+</div>
+<!-- Вкладка: Главная -->
+<div id="tab-home" class="tab-content active">
+<!-- Карточка ID -->
+<div class="card">
+<div class="card-header">
+<div class="card-icon"><i class="fa-solid fa-id-card"></i></div>
+<div class="card-title">Твой Telegram ID</div>
+</div>
+<div class="card-value" id="user-id">Загрузка...</div>
+<button class="btn" onclick="copyID()">
+<i class="fa-regular fa-copy"></i> Скопировать ID
+</button>
+</div>
+<!-- Карточка Баланса -->
+<div class="card">
+<div class="card-header">
+<div class="card-icon"><i class="fa-solid fa-wallet"></i></div>
+<div class="card-title">Твой кэшбэк (Скидка)</div>
+</div>
+<div class="card-value" id="user-balance">0 ₽</div>
+<div class="description">
+Накопленные рубли можно использовать в качестве скидки при следующих заказах!
+</div>
+</div>
+<!-- Админ-Панель -->
+<div class="card admin-panel" id="admin-panel">
+<div class="card-header">
+<div class="card-icon admin-icon"><i class="fa-solid fa-user-shield"></i></div>
+<div class="card-title" style="color: #f87171;">Панель Администратора</div>
+</div>
+<label style="font-size: 13px; color: var(--hint-color);">ID пользователя:</label>
+<input type="number" id="target-id" placeholder="Введите TG ID">
+<label style="font-size: 13px; color: var(--hint-color);">Сумма кэшбэка (₽):</label>
+<input type="number" id="cashback-amount" placeholder="Например: 100">
+<div class="btn-group">
+<button class="btn btn-admin" id="add-btn">
+<i class="fa-solid fa-plus"></i> Выдать
+</button>
+<button class="btn btn-minus" id="minus-btn">
+<i class="fa-solid fa-minus"></i> Списать
+</button>
+</div>
+<div class="status-msg" id="status-msg"></div>
+</div>
+</div>
+<!-- Вкладка: Информация -->
+<div id="tab-info" class="tab-content">
+<div class="card">
+<div class="card-header">
+<div class="card-icon"><i class="fa-solid fa-circle-info"></i></div>
+<div class="card-title">Как работает система</div>
+</div>
+<ul class="info-list">
+<li>
+<i class="fa-solid fa-percent"></i>
+<div><b>10% кэшбэк за заказы</b>
+За каждый оплаченный заказ вы получаете 10% от его стоимости на ваш бонусный баланс.</div>
+</li>
+<li>
+<i class="fa-solid fa-tag"></i>
+<div><b>Оплата кэшбэком до 10%</b>
+Вы можете списать накопленный баланс, чтобы оплатить до 10% от суммы следующего заказа.</div>
+</li>
+<li>
+<i class="fa-solid fa-coins"></i>
+<div><b>1 балл = 1 рубль</b>
+Бонусы не сгорают и эквивалентны реальным рублям при списании скидки.</div>
+</li>
+</ul>
+</div>
+</div>
+<!-- Нижнее меню навигации -->
+<div class="bottom-nav">
+<div class="nav-item active" onclick="switchTab('home')">
+<i class="fa-solid fa-house"></i>
+<span>Главная</span>
+</div>
+<div class="nav-item" onclick="switchTab('info')">
+<i class="fa-solid fa-circle-info"></i>
+<span>Информация</span>
+</div>
+</div>
+<!-- Firebase & Логика -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
+import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+const firebaseConfig = {
+apiKey: "AIzaSyDY6HvsXKCeqTZSlMHu_qTFt67uZfrBHhQ",
+authDomain: "collectcard-c8426.firebaseapp.com",
+projectId: "collectcard-c8426",
+storageBucket: "collectcard-c8426.firebasestorage.app",
+messagingSenderId: "715595769956",
+appId: "1:715595769956:web:1f918afda2d5aea2211771",
+measurementId: "G-P9ZHPSJJR0"
+};
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const db = getDatabase(app);
+const tg = window.Telegram?.WebApp;
+if (tg) {
+tg.expand();
+tg.ready();
+}
+const rawUserId = tg?.initDataUnsafe?.user?.id;
+const userId = rawUserId ? String(rawUserId) : "6536910883"; // По умолчанию указан ваш ID
+document.getElementById("user-id").innerText = userId;
+window.copyID = function() {
+navigator.clipboard.writeText(userId);
+if (tg?.HapticFeedback) {
+tg.HapticFeedback.notificationOccurred('success');
+}
+if (tg?.showPopup) {
+tg.showPopup({ title: "Успешно", message: "ID скопирован в буфер обмена!", buttons: [{ type: "ok" }] });
+} else {
+alert("ID скопирован!");
+}
+};
+// Доступ к админ-панели разрешен ТОЛЬКО ID 6536910883
+const ADMIN_IDS = ["6536910883"];
+if (ADMIN_IDS.includes(userId)) {
+document.getElementById("admin-panel").style.display = "block";
+}
+// Загрузка и отслеживание баланса
+const userBalanceRef = ref(db, ⁠users/${userId}/balance⁠);
+onValue(userBalanceRef, (snapshot) => {
+const balance = snapshot.val() || 0;
+document.getElementById("user-balance").innerText = ⁠${balance} ₽⁠;
+});
+// Начисление / Списание денег
+function modifyCashback(isAddition) {
+const targetId = document.getElementById("target-id").value.trim();
+const amount = parseFloat(document.getElementById("cashback-amount").value);
+const statusMsg = document.getElementById("status-msg");
+if (!targetId || isNaN(amount) || amount <= 0) {
+statusMsg.style.color = "#ef4444";
+statusMsg.innerText = "Укажите корректный ID и положительную сумму!";
+return;
+}
+const delta = isAddition ? amount : -amount;
+const targetBalanceRef = ref(db, ⁠users/${targetId}/balance⁠);
+runTransaction(targetBalanceRef, (currentBalance) => {
+const newBalance = (currentBalance || 0) + delta;
+return newBalance < 0 ? 0 : newBalance; // Не уходим в минус ниже нуля
+}).then(() => {
+if (tg?.HapticFeedback) {
+tg.HapticFeedback.notificationOccurred('success');
+}
+statusMsg.style.color = isAddition ? "#10b981" : "#f97316";
+statusMsg.innerText = isAddition
+? ⁠Успешно выдано ${amount} ₽ для ID ${targetId}!⁠
+: ⁠Успешно списано ${amount} ₽ у ID ${targetId}!⁠;
+document.getElementById("target-id").value = "";
+document.getElementById("cashback-amount").value = "";
+}).catch((error) => {
+statusMsg.style.color = "#ef4444";
+statusMsg.innerText = "Ошибка операции: " + error.message;
+});
+}
+document.getElementById("add-btn").addEventListener("click", () => modifyCashback(true));
+document.getElementById("minus-btn").addEventListener("click", () => modifyCashback(false));
+// Навигация по вкладкам
+window.switchTab = function(tabName) {
+document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+if (tabName === 'home') {
+document.getElementById('tab-home').classList.add('active');
+document.querySelectorAll('.nav-item')[0].classList.add('active');
+} else if (tabName === 'info') {
+document.getElementById('tab-info').classList.add('active');
+document.querySelectorAll('.nav-item')[1].classList.add('active');
+}
+if (tg?.HapticFeedback) {
+tg.HapticFeedback.selectionChanged();
+}
+};
+</script>
+</body>
+</html>
