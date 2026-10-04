@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Кэшбэк Студии</title>
+  
+  <!-- Telegram Web App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    :root {
+      --bg: var(--tg-theme-bg-color, #17212b);
+      --sec-bg: var(--tg-theme-secondary-bg-color, #232e3c);
+      --text: var(--tg-theme-text-color, #ffffff);
+      --hint: var(--tg-theme-hint-color, #7f91a4);
+      --btn: var(--tg-theme-button-color, #5288c1);
+      --btn-text: var(--tg-theme-button-text-color, #ffffff);
+      --danger: #e53935;
+      --success: #4caf50;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 16px;
+      padding-bottom: 80px;
+    }
+
+    .header {
+      text-align: center;
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .card {
+      background: var(--sec-bg);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 12px;
+      color: var(--hint);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .card-value {
+      font-size: 22px;
+      font-weight: 700;
+      word-break: break-all;
+    }
+
+    .description {
+      font-size: 13px;
+      color: var(--hint);
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
+    .btn {
+      width: 100%;
+      background: var(--btn);
+      color: var(--btn-text);
+      border: none;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: opacity 0.15s;
+    }
+
+    .btn:active {
+      opacity: 0.8;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      margin-top: 4px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(0, 0, 0, 0.2);
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--btn);
+    }
+
+    .admin-panel {
+      display: none;
+      border: 1px solid rgba(229, 57, 53, 0.3);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Нижнее меню навигации */
+    .nav-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: var(--sec-bg);
+      border-top: 1px solid rgba(0, 0, 0, 0.2);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--hint);
+      font-size: 11px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      width: 50%;
+    }
+
+    .nav-item.active {
+      color: var(--btn);
+    }
+
+    .nav-item svg {
+      width: 22px;
+      height: 22px;
+      fill: currentColor;
+      margin-bottom: 2px;
+    }
+
+    .status-msg {
+      font-size: 13px;
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    .info-list {
+      list-style: none;
+    }
+
+    .info-list li {
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 10px;
+      padding-left: 18px;
+      position: relative;
+    }
+
+    .info-list li::before {
+      content: "•";
+      color: var(--btn);
+      font-size: 18px;
+      position: absolute;
+      left: 0;
+      top: -2px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Вкладка: Главная -->
+  <div id="tab-main" class="tab-content active">
+    <div class="header">Студийный Кэшбэк</div>
+
+    <!-- Карточка ID -->
+    <div class="card">
+      <div class="card-title">Твой Telegram ID</div>
+      <div class="card-value" id="user-id">Загрузка...</div>
+      <button class="btn" onclick="copyID()">Скопировать ID</button>
+    </div>
+
+    <!-- Карточка Баланса -->
+    <div class="card">
+      <div class="card-title">Твой кэшбэк (Скидка)</div>
+      <div class="card-value" id="user-balance">0 ₽</div>
+      <div class="description">
+        Накопленные рубли можно использовать в качестве скидки при следующих заказах!
+      </div>
+    </div>
+
+    <!-- Админ Панель (Доступ только для ID: 6536910883) -->
+    <div class="card admin-panel" id="admin-panel">
+      <div class="card-title" style="color: var(--danger);">Панель Администратора</div>
+
+      <label style="font-size: 12px; color: var(--hint);">ID пользователя:</label>
+      <input type="number" id="target-id" placeholder="Введите TG ID">
+
+      <label style="font-size: 12px; color: var(--hint);">Сумма рублей:</label>
+      <input type="number" id="cashback-amount" placeholder="Например: 100">
+
+      <div class="btn-group">
+        <button class="btn" id="add-btn">Начислить</button>
+        <button class="btn btn-danger" id="sub-btn">Списать</button>
+      </div>
+      <div class="status-msg" id="status-msg"></div>
+    </div>
+  </div>
+
+  <!-- Вкладка: Информация -->
+  <div id="tab-info" class="tab-content">
+    <div class="header">Как работает система</div>
+
+    <div class="card">
+      <ul class="info-list">
+        <li><b>10% кэшбэк:</b> Получайте 10% от суммы каждого вашего заказа обратно на бонусный баланс.</li>
+        <li><b>Скидка до 10%:</b> Вы можете оплатить накопленным кэшбэком до 10% от стоимости нового заказа.</li>
+        <li><b>Использование:</b> Назовите ваш Telegram ID менеджеру при оформлении покупки для применения скидки.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Нижняя панель навигации -->
+  <div class="nav-bar">
+    <button class="nav-item active" onclick="switchTab('main', this)">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      Главная
+    </button>
+    <button class="nav-item" onclick="switchTab('info', this)">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+      Информация
+    </button>
+  </div>
+
+  <!-- Firebase & Логика -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+    import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDY6HvsXKCeqTZSlMHu_qTFt67uZfrBHhQ",
+      authDomain: "collectcard-c8426.firebaseapp.com",
+      projectId: "collectcard-c8426",
+      storageBucket: "collectcard-c8426.firebasestorage.app",
+      messagingSenderId: "715595769956",
+      appId: "1:715595769956:web:1f918afda2d5aea2211771",
+      measurementId: "G-P9ZHPSJJR0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.expand();
+      tg.ready();
+    }
+
+    // Получаем ID пользователя
+    let userId = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : null;
+    
+    if (!userId) {
+      const urlParams = new URLSearchParams(window.location.search);
+      userId = urlParams.get('id') || "6536910883";
+    }
+
+    document.getElementById("user-id").innerText = userId;
+
+    // Переключение вкладок
+    window.switchTab = function(tabName, el) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+      
+      document.getElementById('tab-' + tabName).classList.add('active');
+      el.classList.add('active');
+    };
+
+    // Копирование ID
+    window.copyID = function() {
+      navigator.clipboard.writeText(userId);
+      if (tg?.showPopup) {
+        tg.showPopup({ title: "Успешно", message: "ID скопирован в буфер обмена!", buttons: [{ type: "ok" }] });
+      } else {
+        alert("ID скопирован!");
+      }
+    };
+
+    // Проверка доступа к Админ-Панели (Только для ID 6536910883)
+    const ADMIN_ID = "6536910883";
+    if (String(userId) === ADMIN_ID) {
+      document.getElementById("admin-panel").style.display = "block";
+    }
+
+    // Слушатель баланса
+    const userBalanceRef = ref(db, `users/${userId}/balance`);
+    onValue(userBalanceRef, (snapshot) => {
+      const balance = snapshot.val() || 0;
+      document.getElementById("user-balance").innerText = `${balance} ₽`;
+    });
+
+    // Изменение баланса (Начисление/Списание)
+    function changeBalance(isAdding) {
+      const targetId = document.getElementById("target-id").value.trim();
+      let amount = parseFloat(document.getElementById("cashback-amount").value);
+      const statusMsg = document.getElementById("status-msg");
+
+      if (!targetId || isNaN(amount) || amount <= 0) {
+        statusMsg.style.color = "var(--danger)";
+        statusMsg.innerText = "Укажите корректный ID и сумму!";
+        return;
+      }
+
+      if (!isAdding) {
+        amount = -amount;
+      }
+
+      const targetBalanceRef = ref(db, `users/${targetId}/balance`);
+      runTransaction(targetBalanceRef, (currentBalance) => {
+        const newBalance = (currentBalance || 0) + amount;
+        return newBalance < 0 ? 0 : newBalance;
+      }).then(() => {
+        statusMsg.style.color = "var(--success)";
+        statusMsg.innerText = isAdding ? `Начислено для ID ${targetId}` : `Списано у ID ${targetId}`;
+        document.getElementById("target-id").value = "";
+        document.getElementById("cashback-amount").value = "";
+      }).catch((error) => {
+        statusMsg.style.color = "var(--danger)";
+        statusMsg.innerText = "Ошибка: " + error.message;
+      });
+    }
+
+    document.getElementById("add-btn").addEventListener("click", () => changeBalance(true));
+    document.getElementById("sub-btn").addEventListener("click", () => changeBalance(false));
+  </script>
+</body>
+</html>
